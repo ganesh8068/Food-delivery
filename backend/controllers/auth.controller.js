@@ -4,11 +4,12 @@ import genToken from "../utils/token.js";
 
 const signUp = async (req, res) => {
   try {
-    const { fullname, email, password, mobile, role } = req.body;
-    const user = await User.findOne({ email });
+    const { fullName, email, password, mobile, role } = req.body;
+
+    let user = await User.findOne({ email });
 
     if (user) {
-      return res.status(400).json({ message: "User already exist." });
+      return res.status(400).json({ message: "User already exists." });
     }
 
     if (password.length < 8) {
@@ -20,16 +21,17 @@ const signUp = async (req, res) => {
     if (mobile.length < 10) {
       return res
         .status(400)
-        .json({ message: "mobile No. must be at least 10 digits." });
+        .json({ message: "Mobile number must be at least 10 digits." });
     }
 
-    const hasedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await bcrypt.hash(password, 10);
+
     user = await User.create({
-      fullname,
+      fullName,
       email,
       role,
       mobile,
-      password: hasedPassword,
+      password: hashedPassword,
     });
 
     const token = await genToken(user._id);
@@ -43,9 +45,11 @@ const signUp = async (req, res) => {
 
     return res.status(201).json(user);
   } catch (error) {
-    return res.status(500).json(`sign up error ${error}`);
+    console.error("Sign up error:", error);
+    return res.status(500).json({ message: "Sign up error", error: error.message });
   }
 };
+
 
 const signIn = async (req, res) => {
   try {

@@ -6,6 +6,8 @@ import { FcGoogle } from "react-icons/fc";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { serverUrl } from "../App";
+import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import { auth } from "../../firebase";
 
 const SignIn = () => {
   const primaryColor = "#ff4d2d";
@@ -16,6 +18,7 @@ const SignIn = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [err, setErr] = useState("");
 
   const navigate = useNavigate();
 
@@ -27,6 +30,25 @@ const SignIn = () => {
         { withCredentials: true }
       );
       console.log(result);
+      setErr("");
+    } catch (error) {
+      setErr(error.response.data.message);
+    }
+  };
+
+  const handleGoogleAuth = async () => {
+    const provider = new GoogleAuthProvider();
+    const result = await signInWithPopup(auth, provider);
+
+    try {
+      const { data } = await axios.post(
+        `${serverUrl}/api/auth/google-auth`,
+        {
+          email: result.user.email,
+        },
+        { withCredentials: true }
+      );
+      console.log(data);
     } catch (error) {
       console.log(error);
     }
@@ -113,7 +135,12 @@ const SignIn = () => {
           Sign In
         </button>
 
-        <button className="w-full mt-4 flex items-center justify-center gap-2 border rounded-lg px-2 py-3 transition duration-200 border-gray-400 hover:bg-gray-200 cursor-pointer">
+        <p className="text-red-500 text-center my-[10px]">*{err}</p>
+
+        <button
+          onClick={handleGoogleAuth}
+          className="w-full mt-4 flex items-center justify-center gap-2 border rounded-lg px-2 py-3 transition duration-200 border-gray-400 hover:bg-gray-200 cursor-pointer"
+        >
           <FcGoogle size={20} />
           <span>Sign In with Google</span>
         </button>

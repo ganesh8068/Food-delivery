@@ -8,6 +8,7 @@ import axios from "axios";
 import { serverUrl } from "../App";
 import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { auth } from "../../firebase";
+import { ClipLoader } from "react-spinners"
 
 const SignUp = () => {
   const primaryColor = "#ff4d2d";
@@ -21,11 +22,13 @@ const SignUp = () => {
   const [email, setEmail] = useState("");
   const [mobile, setMobile] = useState("");
   const [password, setPassword] = useState("");
-  const [err, setErr] = useState("")
+  const [err, setErr] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
 
   const handleSignUp = async () => {
+    setLoading(true);
     try {
       const result = await axios.post(
         `${serverUrl}/api/auth/signup`,
@@ -33,15 +36,17 @@ const SignUp = () => {
         { withCredentials: true }
       );
       console.log(result);
-      setErr("")
+      setErr("");
+      setLoading(false);
     } catch (error) {
-      setErr(error.response.data.message)
+      setErr(error?.response?.data?.message);
+      setLoading(false);
     }
   };
 
   const handleGoogleAuth = async () => {
     if (!mobile) {
-      return setErr("mobile no is required")
+      return setErr("mobile no is required");
     }
     const provider = new GoogleAuthProvider();
     const result = await signInWithPopup(auth, provider);
@@ -198,12 +203,13 @@ const SignUp = () => {
 
         <button
           className={`w-full font-semibold rounded-lg px-4 py-2 transition duration-200 bg-[#ff4d2d] text-white hover:bg-[#e64323] cursor-pointer`}
-          onClick={handleSignUp}
+          onClick={handleSignUp} disabled={loading}
         >
-          Sign Up
+          {loading ? <ClipLoader size={20} color="white"/> : "Sign Up"}
+
         </button>
 
-        <p className="text-red-500 text-center my-[10px]">*{err}</p>
+        {err && <p className="text-red-500 text-center my-[10px]">*{err}</p>}
 
         <button
           onClick={handleGoogleAuth}
